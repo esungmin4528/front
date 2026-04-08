@@ -1,35 +1,53 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Home.css'; // 상단바 디자인 가져오기
 import './Auth.css'; // 로그인/회원가입 디자인 가져오기
 
 export default function Login() {
+    const navigate = useNavigate();
+
+    // 1️⃣ 입력값 상태 관리
+    const [userId, setUserId] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+
+    // 2️⃣ 로그인 폼 제출 함수
+    const handleLoginSubmit = (e) => {
+        e.preventDefault();
+
+        // 3️⃣ 브라우저의 비밀 수첩(localStorage)에서 가입된 유저 정보 꺼내오기!
+        const savedUserString = localStorage.getItem('user_db');
+
+        if (!savedUserString) {
+            setErrorMessage('가입된 정보가 없습니다. 회원가입을 먼저 진행해주세요.');
+            return;
+        }
+
+        const savedUser = JSON.parse(savedUserString);
+
+        // 4️⃣ 내가 방금 입력한 정보와 수첩에 적힌 정보 대조하기
+        if (savedUser.userId === userId && savedUser.password === password) {
+            // ✅ 로그인 성공!
+            setErrorMessage('');
+            alert(`${savedUser.name}님, 환영합니다!`);
+
+            // 🔥 앱 전체가 이 사람이 로그인했다는 걸 알 수 있게 도장 찍어두기
+            localStorage.setItem('isLoggedIn', 'true');
+
+            // 홈 화면으로 이동 후, 헤더를 업데이트 하기 위해 새로고침
+            navigate('/');
+            window.location.reload();
+        } else {
+            // ❌ 로그인 실패
+            setErrorMessage('아이디 또는 비밀번호가 일치하지 않습니다.');
+        }
+    };
+
     return (
         <div className="auth-container">
-            {/* 상단 네비게이션 바 */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <a href="#">community ⌄</a>
-                    <a href="#">gallery ⌄</a>
-                    <a href="#">forum</a>
-                </nav>
-                <div className="nav-buttons">
-                    <Link to="/login"><button className="login-btn">Login</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
-
-            {/* 로그인 폼 영역 */}
             <div className="auth-wrapper">
                 <h1 className="auth-title">Welcome Back</h1>
-                <p className="auth-subtitle">Please log in to continue</p>
+                <p className="auth-subtitle">Please login to continue</p>
 
                 <div className="social-login">
                     <button className="social-btn btn-google">G</button>
@@ -40,15 +58,28 @@ export default function Login() {
 
                 <div className="divider">또는</div>
 
-                <form className="auth-form">
+                {/* 🔥 폼에 onSubmit 연결 */}
+                <form className="auth-form" onSubmit={handleLoginSubmit}>
                     <div className="input-group">
                         <label>아이디 또는 이메일 ID</label>
-                        <input type="text" className="auth-input" placeholder="필수 입력" />
+                        <input
+                            type="text"
+                            className="auth-input"
+                            placeholder="필수 입력"
+                            value={userId}
+                            onChange={(e) => setUserId(e.target.value)}
+                        />
                     </div>
 
                     <div className="input-group">
                         <label>비밀번호</label>
-                        <input type="password" className="auth-input" placeholder="필수 입력" />
+                        <input
+                            type="password"
+                            className="auth-input"
+                            placeholder="필수 입력"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </div>
 
                     <div className="auth-options">
@@ -58,7 +89,14 @@ export default function Login() {
                         <a href="#">비밀번호를 잊으셨나요?</a>
                     </div>
 
-                    <button type="submit" className="submit-btn">Log In</button>
+                    {/* 🔥 에러 메시지 출력 영역 */}
+                    {errorMessage && (
+                        <div style={{ color: 'red', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>
+                            {errorMessage}
+                        </div>
+                    )}
+
+                    <button type="submit" className="submit-btn" style={{marginTop: '15px'}}>Log In</button>
                 </form>
 
                 <div className="auth-footer">

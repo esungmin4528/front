@@ -20,24 +20,6 @@ export default function GalleryWrite() {
     return (
         <div className="gallery-write-container">
             {/* 1. 상단 네비게이션 바 */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <Link to="/community">community ⌄</Link>
-                    <Link to="/gallery" style={{ color: '#66cdaa', fontWeight: 'bold' }}>gallery ⌄</Link>
-                    <a href="#">forum</a>
-                </nav>
-                <div className="nav-buttons">
-                    <Link to="/login"><button className="login-btn">my page</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
 
             {/* 2. 서브 헤더 (검색창, 프로필) */}
             <div className="gallery-sub-header" style={{ marginBottom: '20px' }}>

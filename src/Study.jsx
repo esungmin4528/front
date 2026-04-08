@@ -7,24 +7,6 @@ export default function Study() {
     return (
         <div className="study-container">
             {/* 1. 상단 네비게이션 바 */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <Link to="/community">community ⌄</Link>
-                    <Link to="/gallery">gallery ⌄</Link>
-                    <Link to="/forum">forum</Link>
-                </nav>
-                <div className="nav-buttons">
-                    <Link to="/login"><button className="login-btn">Login</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
 
             {/* 2. 학습 메인 콘텐츠 영역 */}
             <main className="study-main-content">

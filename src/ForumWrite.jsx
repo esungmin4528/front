@@ -6,6 +6,12 @@ import './WritePost.css'; // 커뮤니티 글쓰기 디자인 완벽 재사용!
 export default function ForumWrite() {
     const navigate = useNavigate();
 
+    // 🔥 1. 입력 상태(State) 관리 (카메라 브랜드 추가!)
+    const [board, setBoard] = useState('');
+    const [camera, setCamera] = useState(''); // 카메라 브랜드 전용
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+
     // 4개의 토글 스위치 상태 관리
     const [toggles, setToggles] = useState({
         comment: true,
@@ -18,30 +24,59 @@ export default function ForumWrite() {
         setToggles(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
+    // 🔥 2. "등록" 버튼 클릭 함수
+    const handleSubmit = () => {
+        // 유효성 검사
+        if (!board) {
+            alert('게시판 카테고리를 선택해주세요.');
+            return;
+        }
+        if (!camera) {
+            alert('카메라 종류를 선택해주세요.');
+            return;
+        }
+        if (!title.trim()) {
+            alert('제목을 입력해주세요.');
+            return;
+        }
+        if (!content.trim()) {
+            alert('내용을 입력해주세요.');
+            return;
+        }
+
+        // 로그인한 유저 정보 가져오기
+        const savedUserString = localStorage.getItem('user_db');
+        const authorName = savedUserString ? JSON.parse(savedUserString).name : '익명';
+
+        // 3. 포럼 전용 게시글 데이터 만들기
+        const newPost = {
+            id: Date.now(),
+            boardType: board, // Q&A 인지 정보공유인지
+            brand: camera,    // 🔥 어느 카메라 브랜드인지 (포럼에서 가장 중요!)
+            title: title,
+            content: content,
+            author: authorName,
+            date: new Date().toLocaleDateString(),
+            views: 0
+        };
+
+        // 4. 로컬 스토리지에서 'forum_posts' 가져오기 (커뮤니티와 다른 수첩을 씁니다!)
+        const existingPosts = JSON.parse(localStorage.getItem('forum_posts')) || [];
+
+        // 5. 저장
+        const updatedPosts = [newPost, ...existingPosts];
+        localStorage.setItem('forum_posts', JSON.stringify(updatedPosts));
+
+        alert('포럼 게시글이 성공적으로 등록되었습니다!');
+
+        // 6. 포럼 메인 화면으로 이동
+        navigate('/forum');
+    };
+
     return (
         <div className="write-container">
-            {/* 1. 상단 네비게이션 바 */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <Link to="/community">community ⌄</Link>
-                    <Link to="/gallery">gallery ⌄</Link>
-                    {/* 포럼 화면이므로 초록색 강조 */}
-                    <Link to="/forum" style={{ color: '#66cdaa', fontWeight: 'bold' }}>forum</Link>
-                </nav>
-                <div className="nav-buttons">
-                    <Link to="/login"><button className="login-btn">my page</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
 
-            {/* 2. 글쓰기 헤더 */}
+            {/* 글쓰기 헤더 */}
             <div className="write-header-bar">
                 <div className="write-header-left">
                     <button className="back-btn" onClick={() => navigate(-1)}>←</button>
@@ -49,41 +84,59 @@ export default function ForumWrite() {
                 </div>
                 <div className="write-header-right">
                     <span className="temp-save">임시등록 <span className="temp-count">0</span></span>
-                    <button className="submit-post-btn">등록</button>
+                    {/* 🔥 등록 버튼에 handleSubmit 연결 */}
+                    <button className="submit-post-btn" onClick={handleSubmit}>등록</button>
                 </div>
             </div>
 
-            {/* 3. 메인 영역 */}
+            {/* 메인 영역 */}
             <div className="write-content">
 
                 {/* 왼쪽: 에디터 */}
                 <main className="write-main">
 
-                    {/* 🔥 수정된 부분: 게시판과 카메라 종류 드롭다운 나란히 배치 */}
+                    {/* 게시판과 카메라 종류 드롭다운 */}
                     <div className="editor-top">
                         <div style={{ display: 'flex', gap: '16px' }}>
-                            <select className="board-select" style={{ flex: 1 }}>
-                                <option>게시판을 선택해 주세요</option>
-                                <option>Q&A (질문/답변)</option>
-                                <option>정보공유</option>
+                            <select
+                                className="board-select"
+                                style={{ flex: 1 }}
+                                value={board}
+                                onChange={(e) => setBoard(e.target.value)}
+                            >
+                                <option value="">게시판을 선택해 주세요</option>
+                                <option value="Q&A">Q&A (질문/답변)</option>
+                                <option value="정보공유">정보공유</option>
                             </select>
-                            <select className="board-select" style={{ flex: 1 }}>
-                                <option>카메라 종류를 선택해 주세요</option>
-                                <option>Canon</option>
-                                <option>Sony</option>
-                                <option>Lieca</option>
-                                <option>Film</option>
-                                <option>Fujifilm</option>
-                                <option>Hasselblad</option>
-                                <option>Olympus</option>ß
-                                <option>Panasonic</option>
-                                <option>기타(etc)</option>
+
+                            <select
+                                className="board-select"
+                                style={{ flex: 1 }}
+                                value={camera}
+                                onChange={(e) => setCamera(e.target.value)}
+                            >
+                                <option value="">카메라 종류를 선택해 주세요</option>
+                                <option value="Canon">Canon</option>
+                                <option value="Sony">Sony</option>
+                                <option value="Leica">Leica</option>
+                                <option value="Film">Film</option>
+                                <option value="Fujifilm">Fujifilm</option>
+                                <option value="Hasselblad">Hasselblad</option>
+                                <option value="Olympus">Olympus</option>
+                                <option value="Panasonic">Panasonic</option>
+                                <option value="기타(etc)">기타(etc)</option>
                             </select>
                         </div>
-                        <input type="text" className="title-input" placeholder="제목을 입력해 주세요" />
+                        <input
+                            type="text"
+                            className="title-input"
+                            placeholder="제목을 입력해 주세요"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
                     </div>
 
-                    {/* 에디터 툴바 (커뮤니티와 동일하게 복구) */}
+                    {/* 에디터 툴바 */}
                     <div className="editor-toolbar">
                         <div className="toolbar-icons">
                             <button>🖼️ 사진</button>
@@ -105,7 +158,12 @@ export default function ForumWrite() {
                         </div>
                     </div>
 
-                    <textarea className="content-textarea" placeholder="내용을 입력하세요"></textarea>
+                    <textarea
+                        className="content-textarea"
+                        placeholder="내용을 입력하세요"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                    ></textarea>
 
                     {/* 하단 태그 영역 */}
                     <div className="editor-bottom-tags">
@@ -134,7 +192,7 @@ export default function ForumWrite() {
                         </div>
                     </div>
 
-                    {/* 토글 설정 박스 (4개로 복구) */}
+                    {/* 토글 설정 박스 */}
                     <div className="setting-box gray-box">
                         <div className="toggle-row">
                             <span className="toggle-label">댓글달기 허용</span>

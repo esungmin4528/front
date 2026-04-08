@@ -4,7 +4,12 @@ import './Home.css';
 import './WritePost.css';
 
 export default function WritePost() {
-    const navigate = useNavigate(); // 뒤로 가기 기능을 위한 훅(Hook)
+    const navigate = useNavigate(); // 뒤로 가기 및 페이지 이동을 위한 훅
+
+    // 🔥 1. 사용자가 입력할 제목, 내용, 카테고리를 저장할 상태(State)
+    const [board, setBoard] = useState('');
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
 
     // 우측 토글 스위치 상태 관리
     const [toggles, setToggles] = useState({
@@ -14,34 +19,58 @@ export default function WritePost() {
         source: true
     });
 
-    // 토글 클릭 시 상태 변경하는 함수
     const handleToggle = (key) => {
         setToggles(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
+    // 🔥 2. "등록" 버튼을 눌렀을 때 실행될 함수
+    const handleSubmit = () => {
+        // 유효성 검사 (빈칸 체크)
+        if (!board) {
+            alert('게시판 카테고리를 선택해주세요.');
+            return;
+        }
+        if (!title.trim()) {
+            alert('제목을 입력해주세요.');
+            return;
+        }
+        if (!content.trim()) {
+            alert('내용을 입력해주세요.');
+            return;
+        }
+
+        // 로그인한 유저 정보 가져오기 (작성자 이름용)
+        const savedUserString = localStorage.getItem('user_db');
+        const authorName = savedUserString ? JSON.parse(savedUserString).name : '익명';
+
+        // 3. 저장할 새 게시글 데이터 만들기
+        const newPost = {
+            id: Date.now(), // 현재 시간을 밀리초로 써서 고유 번호(ID) 생성
+            tag: board,
+            title: title,
+            content: content,
+            author: authorName,
+            date: new Date().toLocaleDateString(), // 오늘 날짜 (예: 2026. 4. 8.)
+            views: 0
+        };
+
+        // 4. 기존 게시글 목록 가져오기 (없으면 빈 배열 [])
+        const existingPosts = JSON.parse(localStorage.getItem('community_posts')) || [];
+
+        // 5. 새 게시글을 맨 앞에 추가해서 다시 저장하기
+        const updatedPosts = [newPost, ...existingPosts];
+        localStorage.setItem('community_posts', JSON.stringify(updatedPosts));
+
+        alert('게시글이 성공적으로 등록되었습니다!');
+
+        // 6. 글 작성이 끝났으니 커뮤니티 목록으로 돌아가기
+        navigate('/community');
+    };
+
     return (
         <div className="write-container">
-            {/* 1. 상단 네비게이션 바 (공통) */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <Link to="/community" style={{ color: '#66cdaa', fontWeight: 'bold' }}>community ⌄</Link>
-                    <a href="#">gallery ⌄</a>
-                    <a href="#">forum</a>
-                </nav>
-                <div className="nav-buttons">
-                    <Link to="/login"><button className="login-btn">my page</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
 
-            {/* 2. 글쓰기 헤더 (뒤로가기, 제목, 등록 버튼) */}
+            {/* 글쓰기 헤더 */}
             <div className="write-header-bar">
                 <div className="write-header-left">
                     <button className="back-btn" onClick={() => navigate(-1)}>←</button>
@@ -49,27 +78,41 @@ export default function WritePost() {
                 </div>
                 <div className="write-header-right">
                     <span className="temp-save">임시등록 <span className="temp-count">0</span></span>
-                    <button className="submit-post-btn">등록</button>
+                    {/* 🔥 등록 버튼에 handleSubmit 연결! */}
+                    <button className="submit-post-btn" onClick={handleSubmit}>등록</button>
                 </div>
             </div>
 
-            {/* 3. 글쓰기 메인 영역 (좌/우 분할) */}
+            {/* 글쓰기 메인 영역 */}
             <div className="write-content">
 
                 {/* 왼쪽: 에디터 영역 */}
                 <main className="write-main">
-                    {/* 게시판 선택 & 제목 입력 */}
+                    {/* 🔥 게시판 선택 & 제목 입력에 State 연결 */}
                     <div className="editor-top">
-                        <select className="board-select">
-                            <option>게시판을 선택해 주세요</option>
-                            <option>일상</option>
-                            <option>출사</option>
-                            <option>자유</option>
+                        <select
+                            className="board-select"
+                            value={board}
+                            onChange={(e) => setBoard(e.target.value)}
+                        >
+                            <option value="">게시판을 선택해 주세요</option>
+                            <option value="일상">일상</option>
+                            <option value="자유">자유</option>
+                            <option value="사진">사진</option>
+                            <option value="거래">거래</option>
+                            <option value="유머">유머</option>
+                            <option value="출사">출사</option>
                         </select>
-                        <input type="text" className="title-input" placeholder="제목을 입력해 주세요" />
+                        <input
+                            type="text"
+                            className="title-input"
+                            placeholder="제목을 입력해 주세요"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
                     </div>
 
-                    {/* 에디터 툴바 (디자인) */}
+                    {/* 에디터 툴바 */}
                     <div className="editor-toolbar">
                         <div className="toolbar-icons">
                             <button>🖼️ 사진</button>
@@ -91,8 +134,13 @@ export default function WritePost() {
                         </div>
                     </div>
 
-                    {/* 본문 입력 창 */}
-                    <textarea className="content-textarea" placeholder="내용을 입력하세요"></textarea>
+                    {/* 🔥 본문 입력 창에 State 연결 */}
+                    <textarea
+                        className="content-textarea"
+                        placeholder="내용을 입력하세요"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                    ></textarea>
 
                     {/* 하단 태그 영역 */}
                     <div className="editor-bottom-tags">

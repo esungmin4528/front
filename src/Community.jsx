@@ -1,11 +1,62 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Home.css';
 import './Community.css';
 
 export default function Community() {
+    const navigate = useNavigate();
     const [activeTag, setActiveTag] = useState('인기순위');
+
     const [boardList, setBoardList] = useState([]);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userName, setUserName] = useState('');
+
+    // 🔥 1. 전체 댓글 목록을 담을 상태 추가!
+    const [allComments, setAllComments] = useState([]);
+
+    useEffect(() => {
+        // 로그인 상태 확인
+        const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
+        setIsLoggedIn(loggedInStatus);
+
+        if (loggedInStatus) {
+            const savedUserString = localStorage.getItem('user_db');
+            if (savedUserString) {
+                const savedUser = JSON.parse(savedUserString);
+                setUserName(savedUser.name);
+            }
+        }
+
+        // 게시글 목록 꺼내오기
+        const savedPostsString = localStorage.getItem('community_posts');
+        if (savedPostsString) {
+            const savedPosts = JSON.parse(savedPostsString);
+            setBoardList(savedPosts);
+        }
+
+        // 🔥 2. 댓글 목록 꺼내오기
+        const savedCommentsString = localStorage.getItem('community_comments');
+        if (savedCommentsString) {
+            setAllComments(JSON.parse(savedCommentsString));
+        }
+    }, []);
+
+    // 🔥 3. 특정 게시글의 '댓글 + 답글' 총 갯수를 계산하는 함수
+    const getCommentCount = (postId) => {
+        // 이 글(postId)에 달린 메인 댓글만 필터링
+        const postComments = allComments.filter(c => c.postId === String(postId));
+
+        let count = postComments.length; // 메인 댓글 갯수
+
+        // 메인 댓글 안에 있는 답글(대댓글) 갯수까지 싹 다 더해주기!
+        postComments.forEach(comment => {
+            if (comment.replies && comment.replies.length > 0) {
+                count += comment.replies.length;
+            }
+        });
+
+        return count;
+    };
 
     const filteredList = activeTag === '인기순위'
         ? boardList
@@ -14,39 +65,22 @@ export default function Community() {
     const categoryList = ['인기순위', '일상', '자유', '사진', '거래', '유머', '출사'];
 
     const getTagClass = (tag) => {
-        switch(tag) {
-            case '일상': return 'tag-green';
-            case '출사': return 'tag-blue';
-            case '자유': return 'tag-orange';
-            case '사진': return 'tag-pink';
-            default: return 'tag-default';
+        switch (tag) {
+            case '일상':
+                return 'tag-green';
+            case '출사':
+                return 'tag-blue';
+            case '자유':
+                return 'tag-orange';
+            case '사진':
+                return 'tag-pink';
+            default:
+                return 'tag-default';
         }
     };
 
     return (
         <div className="community-container">
-            {/* 1. 상단 네비게이션 바 */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <Link to="/community" style={{ color: '#66cdaa', fontWeight: 'bold' }}>community ⌄</Link>
-                    <Link to="/gallery">gallery ⌄</Link>
-                    {/* 🔥 드디어 커뮤니티 화면에서도 포럼 링크 연결! */}
-                    <Link to="/forum">forum</Link>
-                </nav>
-                <div className="nav-buttons">
-                    <Link to="/login"><button className="login-btn">Login</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
-
-            {/* 2. 메인 커뮤니티 영역 (좌/우 분할) */}
             <div className="comm-content">
 
                 {/* 왼쪽: 게시판 메인 영역 */}
@@ -54,8 +88,8 @@ export default function Community() {
                     <div className="comm-top-search">
                         <span className="search-icon">🔍 태그 검색</span>
                         <span className="view-all" onClick={() => setActiveTag('인기순위')} style={{cursor: 'pointer'}}>
-              전체보기 ≡
-            </span>
+                            전체보기 ≡
+                        </span>
                     </div>
 
                     <div className="comm-categories">
@@ -74,7 +108,7 @@ export default function Community() {
                         <select className="filter-select">
                             <option>제목</option>
                         </select>
-                        <input type="text" className="filter-input" placeholder="검색어를 입력해주세요" />
+                        <input type="text" className="filter-input" placeholder="검색어를 입력해주세요"/>
                     </div>
 
                     <table className="comm-table">
@@ -90,21 +124,44 @@ export default function Community() {
                         </thead>
                         <tbody>
                         {filteredList.length > 0 ? (
-                            filteredList.map((row) => (
-                                <tr key={row.id}>
-                                    <td>{row.id}</td>
-                                    <td>
-                                        {row.tag && <span className={`table-tag ${getTagClass(row.tag)}`}>{row.tag}</span>}
-                                    </td>
-                                    <td className="title-cell">{row.title}</td>
-                                    <td>{row.author}</td>
-                                    <td>{row.date}</td>
-                                    <td>{row.views}</td>
-                                </tr>
-                            ))
+                            filteredList.map((row, index) => {
+                                // 🔥 현재 그리는 게시글의 댓글 수 계산!
+                                const commentCount = getCommentCount(row.id);
+
+                                return (
+                                    <tr
+                                        key={row.id}
+                                        onClick={() => navigate(`/community/${row.id}`)}
+                                        style={{cursor: 'pointer'}}
+                                    >
+                                        <td>{filteredList.length - index}</td>
+                                        <td>
+                                            {row.tag &&
+                                                <span className={`table-tag ${getTagClass(row.tag)}`}>{row.tag}</span>}
+                                        </td>
+                                        <td className="title-cell">
+                                            {row.title}
+                                            {/* 🔥 댓글이 1개 이상일 때만 빨간색 숫자를 제목 옆에 표시! */}
+                                            {commentCount > 0 && (
+                                                <span style={{
+                                                    color: '#ff5252',
+                                                    fontWeight: 'bold',
+                                                    marginLeft: '8px',
+                                                    fontSize: '13px'
+                                                }}>
+                                                    [{commentCount}]
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td>{row.author}</td>
+                                        <td>{row.date}</td>
+                                        <td>{row.views}</td>
+                                    </tr>
+                                );
+                            })
                         ) : (
                             <tr>
-                                <td colSpan="6" style={{ padding: '60px 0', color: '#999', textAlign: 'center' }}>
+                                <td colSpan="6" style={{padding: '60px 0', color: '#999', textAlign: 'center'}}>
                                     아직 작성된 게시글이 없습니다.
                                 </td>
                             </tr>
@@ -117,17 +174,37 @@ export default function Community() {
                 <aside className="comm-sidebar">
                     <div className="sidebar-box profile-box">
                         <div className="profile-info">
-                            <div className="profile-avatar">👤</div>
-                            <div className="profile-name">로그인 해주세요</div>
+                            {isLoggedIn ? (
+                                <div className="profile-avatar" style={{overflow: 'hidden'}}>
+                                    <img
+                                        src="https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?q=80&w=100&auto=format&fit=crop"
+                                        alt="프로필"
+                                        style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="profile-avatar">👤</div>
+                            )}
+
+                            <div className="profile-name">
+                                {isLoggedIn ? `${userName} 님` : '로그인 해주세요'}
+                            </div>
                         </div>
-                        <Link to="/login" style={{textDecoration: 'none'}}>
-                            <button className="write-btn">로그인 하러 가기</button>
-                        </Link>
+
+                        {isLoggedIn ? (
+                            <button className="write-btn" onClick={() => navigate('/community/write')}>
+                                ✍️ 글쓰기
+                            </button>
+                        ) : (
+                            <Link to="/login" style={{textDecoration: 'none'}}>
+                                <button className="write-btn">로그인 하러 가기</button>
+                            </Link>
+                        )}
                     </div>
 
                     <div className="sidebar-box popular-box">
                         <h4>실시간 인기 게시판</h4>
-                        <hr className="dashed-line" />
+                        <hr className="dashed-line"/>
                         <div className="popular-content">
                             {/* 나중에 인기글 리스트가 들어갈 자리 */}
                         </div>
@@ -137,4 +214,4 @@ export default function Community() {
             </div>
         </div>
     );
-}//
+}

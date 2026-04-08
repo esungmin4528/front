@@ -1,35 +1,24 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Home.css';
 
 export default function Home() {
+    const navigate = useNavigate();
+
+    // 🔥 핵심: 무조건 false가 아니라, 로컬 스토리지에 'isLoggedIn' 도장이 있는지 확인합니다!
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
+
+    // "시작하기" 버튼 클릭 시 작동하는 함수
+    const handleStartClick = () => {
+        if (isLoggedIn) {
+            navigate('/study'); // 로그인 O -> 학습 메인 페이지로!
+        } else {
+            navigate('/login'); // 로그인 X -> 로그인 화면으로!
+        }
+    };
+
     return (
         <div className="home-container">
-            {/* 1. 상단 네비게이션 바 */}
-            <header className="navbar">
-                <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                </div>
-
-                <nav className="nav-links">
-                    <Link to="/">Home</Link>
-                    <Link to="/community">community ⌄</Link>
-                    <Link to="/gallery">gallery ⌄</Link>
-                    <Link to="/forum">forum</Link>
-                </nav>
-
-                <div className="nav-buttons">
-                    <Link to="/login">
-                        <button className="login-btn">Login</button>
-                    </Link>
-                    <Link to="/signup">
-                        <button className="start-btn">Get started →</button>
-                    </Link>
-                </div>
-            </header>
 
             {/* 2. 메인 히어로 섹션 */}
             <main className="hero-section">
@@ -41,10 +30,10 @@ export default function Home() {
 
                     <div className="cta-box">
                         <span className="cta-text">나에게 딱 맞는 학습 방법이 궁금하다면?</span>
-                        {/* 여기도 학습 페이지로 가게 바꿀 수 있습니다! 일단은 signup으로 둘게요 */}
-                        <Link to="/signup">
-                            <button className="cta-btn">시작하기 →</button>
-                        </Link>
+                        {/* 🔥 Link 대신 onClick 함수를 달아서 똑똑한 버튼으로 만들었습니다! */}
+                        <button className="cta-btn" onClick={handleStartClick}>
+                            시작하기 →
+                        </button>
                     </div>
                 </div>
             </main>
@@ -62,7 +51,7 @@ export default function Home() {
                         </div>
                     </Link>
 
-                    {/* 🔥 두 번째 카드: 사진 학습 (여기에 링크를 걸었습니다!) */}
+                    {/* 두 번째 카드: 사진 학습 */}
                     <Link to="/study" style={{ textDecoration: 'none', color: 'inherit' }}>
                         <div className="feature-card card-green">
                             <div className="card-badge badge-green">핵심 학습</div>
