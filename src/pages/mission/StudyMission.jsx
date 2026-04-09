@@ -5,7 +5,7 @@ import './StudyMission.css';
 export default function StudyMission() {
     const navigate = useNavigate();
 
-    // 🔥 황금비율의 theme를 'purple'에서 'green'으로 변경했습니다!
+    // 임시문제
     const missions = [
         {
             id: 1,
@@ -39,25 +39,6 @@ export default function StudyMission() {
 
     return (
         <div className="mission-container">
-            {/* 1. 상단 네비게이션 바 */}
-            <header className="step-navbar">
-                <div className="step-nav-left">
-                    <button className="back-arrow-btn" onClick={() => navigate(-1)}>←</button>
-                    <div className="nav-divider"></div>
-
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                    <span className="step-nav-title">사진 제출형 학습</span>
-                </div>
-
-                <div className="step-nav-right">
-                    <Link to="/login"><button className="login-btn">Login</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
-
             {/* 2. 메인 콘텐츠 영역 */}
             <main className="step-main-content">
 

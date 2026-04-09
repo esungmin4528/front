@@ -5,6 +5,11 @@
     width: 100%;
     display: flex;
     justify-content: center;
+
+    /* 🔥 스크롤 시 헤더를 천장에 고정시키는 마법의 3줄! */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .navbar-inner {

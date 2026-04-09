@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './Home.css'; // 상단바 디자인 가져오기
+import '../home/Home.css'; // 상단바 디자인 가져오기
 import './Auth.css'; // 로그인/회원가입 디자인 가져오기
 
 export default function Login() {

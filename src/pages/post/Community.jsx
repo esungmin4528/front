@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './Home.css';
+import '../home/Home.css';
 import './Community.css';
 
 export default function Community() {

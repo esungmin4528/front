@@ -1,60 +1,49 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './Home.css';
+import '../home/Home.css';
 import './Auth.css';
+// 🔥 방금 만든 api 함수를 불러옵니다! (경로는 폴더 구조에 맞게 조절해주세요)
+import { signupAPI } from '../../features/auth/api/authApi';
 
 export default function Signup() {
     const navigate = useNavigate();
 
-    // 1️⃣ 입력값 상태 관리 (State) - 닉네임과 이메일 추가!
     const [userId, setUserId] = useState('');
-    const [nickname, setNickname] = useState(''); // 🔥 닉네임 추가
+    const [nickname, setNickname] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
-    const [email, setEmail] = useState(''); // 🔥 전화번호 대신 이메일로 변경
+    const [email, setEmail] = useState('');
 
-    // 에러 메시지와 인증 상태 관리
     const [errorMessage, setErrorMessage] = useState('');
     const [isIdChecked, setIsIdChecked] = useState(false);
-    const [isNicknameChecked, setIsNicknameChecked] = useState(false); // 🔥 닉네임 중복확인 상태
-    const [isEmailVerified, setIsEmailVerified] = useState(false); // 🔥 이메일 인증 상태
+    const [isNicknameChecked, setIsNicknameChecked] = useState(false);
+    const [isEmailVerified, setIsEmailVerified] = useState(false);
 
-    // 2️⃣ 아이디 중복 확인 가짜 함수
+    // (참고: 나중에 백엔드에 중복확인 API가 생기면 여기도 api 함수로 교체하면 됩니다!)
     const handleIdCheck = () => {
-        if (!userId) {
-            alert('아이디를 먼저 입력해주세요.');
-            return;
-        }
+        if (!userId) return alert('아이디를 먼저 입력해주세요.');
         alert('사용 가능한 아이디입니다!');
         setIsIdChecked(true);
     };
 
-    // 🔥 닉네임 중복 확인 가짜 함수 추가
     const handleNicknameCheck = () => {
-        if (!nickname) {
-            alert('닉네임을 먼저 입력해주세요.');
-            return;
-        }
+        if (!nickname) return alert('닉네임을 먼저 입력해주세요.');
         alert('사용 가능한 닉네임입니다!');
         setIsNicknameChecked(true);
     };
 
-    // 3️⃣ 이메일 인증 가짜 함수
     const handleEmailVerify = () => {
-        if (!email) {
-            alert('이메일을 먼저 입력해주세요.');
-            return;
-        }
+        if (!email) return alert('이메일을 먼저 입력해주세요.');
         alert('인증이 완료되었습니다!');
         setIsEmailVerified(true);
     };
 
-    // 4️⃣ 회원가입 폼 제출 함수
-    const handleSignupSubmit = (e) => {
+    // 🔥 비동기 통신을 위해 async를 꼭 붙여줍니다!
+    const handleSignupSubmit = async (e) => {
         e.preventDefault();
 
-        // 깐깐한 유효성 검사!
+        // 깐깐한 유효성 검사 유지
         if (!userId || !nickname || !name || !password || !passwordConfirm || !email) {
             setErrorMessage('모든 필수 항목(*)을 입력해주세요.');
             return;
@@ -80,22 +69,34 @@ export default function Signup() {
             return;
         }
 
-        // 🔥 로컬 스토리지에 정보 저장 (닉네임, 이메일 포함)
-        const newUser = {
-            userId: userId,
-            nickname: nickname,
-            name: name,
-            password: password,
-            email: email
-        };
+        try {
+            // 🔥 1. ERD에 있던 실제 DB 컬럼명에 맞춰서 데이터를 포장합니다.
+            const reqData = {
+                login_id: userId,
+                login_pw: password,
+                name: name,
+                nickname: nickname,
+                email: email
+            };
 
-        localStorage.setItem('user_db', JSON.stringify(newUser));
+            // 🔥 2. 백엔드로 진짜 발사! (응답이 올 때까지 기다림)
+            const result = await signupAPI(reqData);
 
-        setErrorMessage('');
-        console.log('가입 데이터 (로컬 DB 저장 완료):', newUser);
-        alert(`${name}님, 회원가입이 완료되었습니다! 이제 로그인이 가능합니다.`);
+            // 3. 성공 시 처리 (기존 로컬 스토리지 코드 삭제)
+            setErrorMessage('');
+            console.log('백엔드 가입 성공 응답:', result);
+            alert(`${name}님, 회원가입이 완료되었습니다! 이제 로그인이 가능합니다.`);
 
-        navigate('/login');
+            navigate('/login');
+
+        } catch (error) {
+            // 🔥 백엔드에서 에러를 뱉었을 때 (예: 서버 다운, 알 수 없는 에러 등)
+            console.error('회원가입 에러:', error);
+
+            // 백엔드가 에러 메시지를 예쁘게 담아 보내줬다면 그걸 띄우고, 아니면 기본 메시지!
+            const errorMsg = error.response?.data?.message || '회원가입에 실패했습니다. 서버 상태를 확인해주세요.';
+            setErrorMessage(errorMsg);
+        }
     };
 
     return (
@@ -104,7 +105,6 @@ export default function Signup() {
                 <h1 className="auth-title">회원가입</h1>
                 <p className="auth-subtitle" style={{marginBottom: '20px'}}></p>
 
-                {/* 소셜 로그인 버튼들 */}
                 <div className="social-login">
                     <button className="social-btn btn-google">G</button>
                     <button className="social-btn btn-apple"></button>
@@ -114,10 +114,8 @@ export default function Signup() {
 
                 <div className="divider">또는</div>
 
-                {/* 🔥 디자인 순서에 맞춰 폼 영역 재배치! */}
                 <form className="auth-form" onSubmit={handleSignupSubmit}>
 
-                    {/* 1. 아이디 */}
                     <div className="input-group">
                         <label>아이디 <span>*</span></label>
                         <div className="input-with-btn">
@@ -135,7 +133,6 @@ export default function Signup() {
                         </div>
                     </div>
 
-                    {/* 2. 닉네임 (새로 추가!) */}
                     <div className="input-group">
                         <label>닉네임 <span>*</span></label>
                         <div className="input-with-btn">
@@ -153,7 +150,6 @@ export default function Signup() {
                         </div>
                     </div>
 
-                    {/* 3. 이름 */}
                     <div className="input-group">
                         <label>이름 <span>*</span></label>
                         <input
@@ -165,7 +161,6 @@ export default function Signup() {
                         />
                     </div>
 
-                    {/* 4. 비밀번호 */}
                     <div className="input-group">
                         <label>비밀번호 <span>*</span></label>
                         <input
@@ -177,7 +172,6 @@ export default function Signup() {
                         />
                     </div>
 
-                    {/* 5. 비밀번호 확인 */}
                     <div className="input-group">
                         <label>비밀번호 확인 <span>*</span></label>
                         <input
@@ -189,7 +183,6 @@ export default function Signup() {
                         />
                     </div>
 
-                    {/* 6. 이메일 (전화번호에서 변경!) */}
                     <div className="input-group">
                         <label>이메일 <span>*</span></label>
                         <div className="input-with-btn">
@@ -207,8 +200,6 @@ export default function Signup() {
                         </div>
                     </div>
 
-
-                    {/* 에러 메시지 출력 영역 */}
                     {errorMessage && (
                         <div style={{ color: 'red', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>
                             {errorMessage}

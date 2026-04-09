@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './Home.css';
+import '../home/Home.css';
 import './WritePost.css'; // 커뮤니티 글쓰기 디자인 완벽 재사용!
 
 export default function ForumWrite() {

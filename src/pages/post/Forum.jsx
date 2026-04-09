@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './Home.css';
+import '../home/Home.css';
 import './Community.css'; // 사이드바, 테이블 기본 스타일 재사용
 import './Forum.css'; // 포럼 전용 스타일 (브랜드 그리드 등)
 

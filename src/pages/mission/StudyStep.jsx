@@ -5,7 +5,7 @@ import './StudyStep.css';
 export default function StudyStep() {
     const navigate = useNavigate();
 
-    // 🔥 '빛과 노출' 항목의 status를 'start'로 변경했습니다!
+    // 임시문제
     const curriculum = [
         { id: 1, title: '구도의 기초', desc: '삼분할 법칙과 황금비율', level: '레벨 1', status: 'start' },
         { id: 2, title: '빛과 노출', desc: '조리개, 셔터속도, ISO', level: '레벨 1', status: 'start' },
@@ -16,26 +16,6 @@ export default function StudyStep() {
 
     return (
         <div className="step-container">
-            {/* 1. 단계별 학습 전용 상단 네비게이션 바 */}
-            <header className="step-navbar">
-                <div className="step-nav-left">
-                    {/* 뒤로가기 버튼 */}
-                    <button className="back-arrow-btn" onClick={() => navigate(-1)}>←</button>
-                    <div className="nav-divider"></div>
-
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="logo-icon">🌲</span>
-                        <span className="logo-text">LoGrove</span>
-                    </Link>
-                    <span className="step-nav-title">단계별 학습</span>
-                </div>
-
-                <div className="step-nav-right">
-                    <Link to="/login"><button className="login-btn">Login</button></Link>
-                    <Link to="/signup"><button className="start-btn">Get started →</button></Link>
-                </div>
-            </header>
-
             {/* 2. 메인 콘텐츠 영역 (좌측 꾸밈 영역 / 우측 리스트 영역) */}
             <main className="step-main-content">
 
